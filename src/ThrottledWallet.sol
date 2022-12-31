@@ -1,11 +1,6 @@
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.6;
 
-    /**
-     *
-     * Libraries *
-     *
-     */
     import "openzeppelin-contracts/access/Ownable.sol";
     import "openzeppelin-contracts/token/ERC20/IERC20.sol";
     import "openzeppelin-contracts/security/Pausable.sol";
@@ -19,7 +14,6 @@
         // The average amount of tokens that can be sent per block
         uint256 public refillRate;
         // The timestamp of the last transaction
-        uint256 public lastTransaction;
         uint256 public lastTransaction;
         // Instance of ERC20 token;
         IERC20 public token;
