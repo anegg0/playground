@@ -45,12 +45,6 @@
             return contractTotalSupply;
         }
 
-        function balanceOfTokenOwner(
-            address tokenOwner
-        ) public view returns (uint256) {
-            return balances[tokenOwner];
-        }
-
         modifier checkAllowance(uint256 amount) {
             require(token.allowance(msg.sender, address(this)) >= amount, "Error");
             _;
