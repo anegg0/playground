@@ -6,10 +6,10 @@ import "forge-std/Test.sol";
 import "../src/BleedToken.sol";
 
 contract BleedTokenTest is Test {
-    Bleed bleed;
+    BleedToken bleed;
 
     function setUp() public {
-        bleed = new Bleed();
+        bleed = new BleedToken();
     }
 
     function testName() public {
