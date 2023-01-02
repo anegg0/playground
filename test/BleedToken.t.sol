@@ -5,14 +5,19 @@ import "forge-std/Test.sol";
 
 import "../src/BleedToken.sol";
 
-contract TokenTest is Test {
-    Bleed t;
+contract BleedTokenTest is Test {
+    Bleed bleed;
 
     function setUp() public {
-        t = new Bleed();
+        bleed = new Bleed();
     }
 
     function testName() public {
-        assertEq(t.name(), "Bleed");
+        assertEq(bleed.name(), "Bleed");
+    }
+
+    function testApprove() public {
+        address addressToApprove = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
+        assertEq(bleed.approve(addressToApprove, 1), true);
     }
 }
