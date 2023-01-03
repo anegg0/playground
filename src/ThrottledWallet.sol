@@ -35,7 +35,7 @@
         /**
          * @dev The constructor sets the token, maxLimit and refillRate
          */
-        constructor() public {
+        constructor() {
             refillRate = 1000;
             lastTransaction = 0;
         }
