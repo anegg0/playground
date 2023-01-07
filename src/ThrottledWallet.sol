@@ -10,34 +10,21 @@
      * @title throttledWallet
      * @dev The throttledWallet contract has an owner address, and provides basic authorization control
      */
-    contract ThrottledWallet is Ownable, Pausable {
-        // The average amount of tokens that can be sent per block
-        uint256 public refillRate;
-        // The timestamp of the last transaction
-        uint256 public lastTransaction;
-        // Instance of ERC20 token;
-        IERC20 public token;
+    contract ThrottledWallet is Ownable, Pausable, BleedToken {
+        using SafeMath for uint256;
+        using SafeERC20 for IERC20;
 
-        uint256 public _refillRate;
-        /**
-         * @dev maps addresses to a mapping
-         */
         mapping(address => uint256) balances;
-        /**
-         * @dev maps addresses to a mapping
-         */
         mapping(address => mapping(address => uint256)) allowed;
-
+        IERC20 public bleed;
         event transfer(address indexed account, uint256 amount);
 
         using SafeMath for uint256;
 
-        /**
-         * @dev The constructor sets the token, maxLimit and refillRate
-         */
-        constructor() {
-            refillRate = 1000;
-            lastTransaction = 0;
+        constructor(address _bleed) {
+            uint256 refillRate = 1000;
+            uint256 lastTransaction = 0;
+            bleed = IERC20(_bleed);
         }
 
         function totalSupply() public view returns (uint256 contractTotalSupply) {
@@ -46,53 +33,31 @@
         }
 
         modifier checkAllowance(uint256 amount) {
-            require(token.allowance(msg.sender, address(this)) >= amount, "Error");
+            require(bleed.allowance(msg.sender, address(this)) >= amount, "Error");
             _;
         }
 
         modifier checkBalance(uint256 amount) {
-            require(token.balanceOf(msg.sender) >= amount, "Error");
+            require(bleed.balanceOf(msg.sender) >= amount, "Error");
             _;
         }
 
-        // The deposit function allows the wallet to receive tokens from any address
-        function deposit(
-            address account,
-            uint256 amount
-        ) public payable returns (bool success) {
-            if (token.allowance(msg.sender, address(this)) >= amount) {
-                token.balanceOf(address(this)) ==
-                    token.balanceOf(address(this)) + amount;
-                emit transfer(account, amount);
-                return true;
-            } else {
-                return false;
-            }
+        function deposit(uint256 amount) public payable returns (bool success) {
+            require(amount > 0, "Cannot stake 0");
+            uint totalSupply = address(this).balance + amount;
+            balances[msg.sender] = balances[msg.sender].add(amount);
+            bleed.transferFrom(msg.sender, address(this), amount);
         }
 
         function walletBalance() public view returns (uint256 balance) {
-            balance = token.balanceOf(msg.sender);
+            balance = bleed.balanceOf(msg.sender);
             return balance;
         }
 
-        // The spend function allows the wallet to spend tokens within the rate limit
-
-        function Withdraw(uint256 _amount) public {
-            require(balances[msg.sender] >= _amount, "Insufficient Balance");
-            require(
-                block.timestamp >= lastTransaction + refillRate,
-                "The maxLimit has not passed"
-            );
-            balances[msg.sender] -= _amount;
-            (bool sent, ) = msg.sender.call{value: _amount}("");
-            require(sent, "Failed to send Ether");
-            lastTransaction = block.timestamp;
-        }
-
-        function add(uint256 a, uint256 b) internal pure returns (uint256) {
-            uint256 c = a + b;
-            assert(c >= a);
-            return c;
+        function withdraw(uint256 amount) public {
+            require(amount > 0, "Cannot withdraw 0 or negative amounts");
+            require(bleed.balanceOf(msg.sender) >= amount, "Insufficient balance");
+            bleed.safeTransfer(msg.sender, amount);
         }
 
         function pause() public onlyOwner {
