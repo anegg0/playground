@@ -5,18 +5,20 @@
     import "openzeppelin-contracts/token/ERC20/IERC20.sol";
     import "openzeppelin-contracts/security/Pausable.sol";
     import "openzeppelin-contracts/utils/math/SafeMath.sol";
+    import "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 
     /**
      * @title throttledWallet
      * @dev The throttledWallet contract has an owner address, and provides basic authorization control
      */
-    contract ThrottledWallet is Ownable, Pausable, BleedToken {
+    contract ThrottledWallet is Ownable, Pausable {
         using SafeMath for uint256;
         using SafeERC20 for IERC20;
 
         mapping(address => uint256) balances;
         mapping(address => mapping(address => uint256)) allowed;
         IERC20 public bleed;
+        mapping(address => mapping(address => uint)) public allowance;
         event transfer(address indexed account, uint256 amount);
 
         using SafeMath for uint256;
@@ -27,26 +29,20 @@
             bleed = IERC20(_bleed);
         }
 
+        // function transferFrom(
+        //     address from,
+        //     address to,
+        //     uint256 amount
+        // ) public virtual override returns (bool) {
+        //     address spender = _msgSender();
+        //     _spendAllowance(from, spender, amount);
+        //     _transfer(from, to, amount);
+        //     return true;
+        // }
+
         function totalSupply() public view returns (uint256 contractTotalSupply) {
             contractTotalSupply = address(this).balance;
             return contractTotalSupply;
-        }
-
-        modifier checkAllowance(uint256 amount) {
-            require(bleed.allowance(msg.sender, address(this)) >= amount, "Error");
-            _;
-        }
-
-        modifier checkBalance(uint256 amount) {
-            require(bleed.balanceOf(msg.sender) >= amount, "Error");
-            _;
-        }
-
-        function deposit(uint256 amount) public payable returns (bool success) {
-            require(amount > 0, "Cannot stake 0");
-            uint totalSupply = address(this).balance + amount;
-            balances[msg.sender] = balances[msg.sender].add(amount);
-            bleed.transferFrom(msg.sender, address(this), amount);
         }
 
         function walletBalance() public view returns (uint256 balance) {
